@@ -9,9 +9,9 @@ dotenv.config();
 
 const app = express();
 
-// Enable CORS
+// Enable CORS for your frontend domain
 app.use(cors({
-  origin: "http://localhost:5173", // change to your frontend URL in production
+  origin: "https://mind-care-43iy10auf-sathwikachitlooris-projects.vercel.app", 
   credentials: true
 }));
 
