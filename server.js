@@ -1,19 +1,21 @@
 import express from "express";
 import dotenv from "dotenv";
+import cors from "cors";
+
 import authRoutes from "./Routes/authRoutes.js";
 import journalRoutes from "./Routes/journalRoutes.js";
-import cors from "cors";
 
 dotenv.config();
 
 const app = express();
 
-// ✅ CORS (this alone is enough)
+// Enable CORS
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: "http://localhost:5173", // change to your frontend URL in production
   credentials: true
 }));
 
+// Parse JSON bodies
 app.use(express.json());
 
 // Routes
@@ -24,6 +26,8 @@ app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
-app.listen(5000, () => {
-  console.log("Server running on port 5000");
+// Use environment PORT or fallback to 5000
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
