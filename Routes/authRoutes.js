@@ -1,58 +1,30 @@
-const handleSubmit = async (e) => {
-  e.preventDefault();
+import express from "express";
 
-  let newErrors = {};
+const router = express.Router();
 
-  if (!validateEmail(email))
-    newErrors.email = "Invalid email format.";
+// Example login route
+router.post("/login", (req, res) => {
+  const { email, password } = req.body;
 
-  if (!validatePassword(password))
-    newErrors.password =
-      "Password must be 8+ chars, include uppercase, lowercase, number & special character.";
-
-  if (!isLogin && password !== confirmPassword)
-    newErrors.confirm = "Passwords do not match.";
-
-  if (captchaAnswer !== generatedCaptcha)
-    newErrors.captcha = "Captcha incorrect.";
-
-  setErrors(newErrors);
-
-  if (Object.keys(newErrors).length === 0) {
-    try {
-      console.log("FORM SUBMITTED"); // DEBUG
-
-      let res;
-
-      if (isLogin) {
-        res = await API.post("/auth/login", { email, password });
-      } else {
-        res = await API.post("/auth/register", {
-          name: "User",
-          email,
-          password,
-        });
-      }
-
-      console.log("Response:", res.data);
-
-      // ✅ CHECK SUCCESS RESPONSE
-      if (res.data && res.data.token) {
-        localStorage.setItem("token", res.data.token);
-
-        // 🔥 NAVIGATE AFTER SUCCESS
-        navigate("/dashboard", { replace: true });
-      } else {
-        alert("Login failed: No token received");
-      }
-
-    } catch (err) {
-      console.error(err);
-      alert(err.response?.data?.message || err.message);
-    }
-
+  // TODO: Add your real login logic here
+  if (email && password) {
+    return res.json({ token: "dummy-jwt-token", message: "Login successful" });
   } else {
-    generateCaptcha();
-    setCaptchaAnswer("");
+    return res.status(400).json({ message: "Missing email or password" });
   }
-};
+});
+
+// Example register route
+router.post("/register", (req, res) => {
+  const { name, email, password } = req.body;
+
+  // TODO: Add your real registration logic here
+  if (name && email && password) {
+    return res.json({ token: "dummy-jwt-token", message: "Registration successful" });
+  } else {
+    return res.status(400).json({ message: "Missing fields" });
+  }
+});
+
+// Export router as default
+export default router;
