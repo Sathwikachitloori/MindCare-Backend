@@ -1,10 +1,8 @@
 import bcrypt from "bcryptjs";
-import { readData, writeData } from "../Utils/fileHandler.js";
 import generateToken from "../Utils/generateToken.js";
+import db from "../config/dbMysql.js";
 
-const filePath = "./data/users.json";
-
-// REGISTER
+// ================= REGISTER =================
 export const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -13,58 +11,70 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({ message: "All fields required" });
     }
 
-    let users = readData(filePath);
+    // 🔍 Check if user already exists in MySQL
+    db.query(
+      "SELECT * FROM users WHERE email = ?",
+      [email],
+      async (err, result) => {
+        if (err) {
+          console.log("DB ERROR:", err);
+          return res.status(500).json({ message: "Database error" });
+        }
 
-    const userExists = users.find((u) => u.email === email);
-    if (userExists) {
-      return res.status(400).json({ message: "User already exists" });
-    }
+        if (result.length > 0) {
+          return res.status(400).json({ message: "User already exists" });
+        }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = {
-      id: Date.now(),
-      name,
-      email,
-      password: hashedPassword,
-    };
+        // ✅ Insert user into MySQL
+        db.query(
+          "INSERT INTO users (email) VALUES (?)",
+          [email],
+          (err2, result2) => {
+            if (err2) {
+              console.log("DB ERROR:", err2);
+              return res.status(500).json({ message: "Database error" });
+            }
 
-    users.push(newUser);
-    writeData(filePath, users);
-
-    res.status(201).json({
-      message: "User registered successfully",
-      userId: newUser.id,
-    });
+            res.status(201).json({
+              message: "User registered successfully",
+            });
+          }
+        );
+      }
+    );
 
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// LOGIN
+// ================= LOGIN =================
 export const loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email } = req.body;
 
-    let users = readData(filePath);
+    console.log("Logging in:", email);
 
-    const user = users.find((u) => u.email === email);
+    // ✅ Save login to MySQL
+    db.query(
+      "INSERT INTO users (email) VALUES (?)",
+      [email],
+      (err, result) => {
+        if (err) {
+          console.log("MySQL Error:", err);
+          return res.status(500).json({ message: "Database error" });
+        }
 
-    if (!user) {
-      return res.status(400).json({ message: "User not found" });
-    }
+        console.log("Login saved in MySQL:", email);
 
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid password" });
-    }
-
-    res.json({
-      message: "Login successful",
-      token: generateToken(user.id),
-    });
+        res.json({
+          message: "Login successful",
+          token: generateToken(email),
+        });
+      }
+    );
 
   } catch (error) {
     res.status(500).json({ message: error.message });

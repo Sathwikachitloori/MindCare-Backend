@@ -2,24 +2,28 @@ import express from "express";
 import dotenv from "dotenv";
 import authRoutes from "./Routes/authRoutes.js";
 import journalRoutes from "./Routes/journalRoutes.js";
+import cors from "cors";
 
 dotenv.config();
 
 const app = express();
 
-// Middleware
+// ✅ CORS (this alone is enough)
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true
+}));
+
 app.use(express.json());
 
 // Routes
 app.use("/api/auth", authRoutes);
-app.use("/api/journal", journalRoutes); // ✅ added correctly here
+app.use("/api/journal", journalRoutes);
 
-// Test route
 app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
-// Start server
 app.listen(5000, () => {
   console.log("Server running on port 5000");
 });
